@@ -99,9 +99,11 @@
             position: relative;
         }
         
-        .nav-links a.active {
+        /* Style pour le lien actif - spécificité augmentée */
+        nav.transparent .nav-links a.active,
+        nav.scrolled .nav-links a.active {
             color: #B48F69 !important;
-            font-weight:600;
+            font-weight: 600;
         }
         
         .nav-links a::after {
@@ -111,11 +113,12 @@
             left: 0;
             width: 0;
             height: 2px;
-            background: #8fb8c9;
+            background: #B48F69;
             transition: width 0.3s ease;
         }
         
-        .nav-links a.active::after {
+        nav.transparent .nav-links a.active::after,
+        nav.scrolled .nav-links a.active::after {
             width: 100%;
         }
         
