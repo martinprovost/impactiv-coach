@@ -95,8 +95,28 @@
             color: #8fb8c9;
         }
         
+        .nav-links a {
+            position: relative;
+        }
+        
         .nav-links a.active {
-            color: #8fb8c9;
+            color: #BA8F69 !important;
+            font-weight:700;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #8fb8c9;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a.active::after {
+            width: 100%;
         }
         
         /* Hero Section */
@@ -1281,12 +1301,10 @@
             </div>
             
             <div class="nav-links">
-                <a href="#accueil">Accueil</a>
                 <a href="#a-propos">À propos</a>
                 <a href="#benefices">Bénéfices</a>
                 <a href="#formations">Formations</a>
                 <a href="#actualites">Actualités</a>
-                
                 <a href="#contact">Contact</a>
             </div>
         </div>
@@ -2081,7 +2099,7 @@
                                 </div>
                                 <div>
                                     <h5>Email</h5>
-                                    <p>bertrand@impactiv.consulting</p>
+                                    <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f69493848284979892b69f9b869795829f80d895999885839a829f9891">[email&#160;protected]</a></p>
                                 </div>
                             </div>
                             
@@ -2164,7 +2182,7 @@
         </div>
     </footer>
     
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Navigation scroll behavior
         var nav = document.getElementById('mainNav');
         var navLogo = document.getElementById('navLogo');
@@ -2233,14 +2251,67 @@
             
             if (content.classList.contains('open')) {
                 content.classList.remove('open');
-                icon.classList.remove('open');
+                icon.style.transform = 'rotate(0deg)';
             } else {
                 content.classList.add('open');
-                icon.classList.add('open');
+                icon.style.transform = 'rotate(180deg)';
             }
         }
         
+        // Scroll Spy - Surligner l'onglet actif selon la section visible
+        (function() {
+            var navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+            var sections = [];
+            
+            navLinks.forEach(function(link) {
+                var sectionId = link.getAttribute('href').substring(1);
+                var section = document.getElementById(sectionId);
+                if (section) {
+                    sections.push({
+                        id: sectionId,
+                        element: section,
+                        link: link
+                    });
+                }
+            });
+            
+            function updateActiveLink() {
+                var scrollPosition = window.scrollY + 150;
+                var currentSection = null;
+                
+                sections.forEach(function(section) {
+                    var sectionTop = section.element.offsetTop;
+                    var sectionBottom = sectionTop + section.element.offsetHeight;
+                    
+                    if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                        currentSection = section;
+                    }
+                });
+                
+                // Si on est en bas de page, sélectionner Contact
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                    currentSection = sections[sections.length - 1];
+                }
+                
+                // Retirer la classe active de tous les liens
+                navLinks.forEach(function(link) {
+                    link.classList.remove('active');
+                });
+                
+                // Ajouter la classe active au lien courant
+                if (currentSection) {
+                    currentSection.link.classList.add('active');
+                }
+            }
+            
+            // Écouter le scroll
+            window.addEventListener('scroll', function() {
+                requestAnimationFrame(updateActiveLink);
+            });
+            
+            // Initialiser au chargement
+            updateActiveLink();
+        })();
     </script>
-    
 </body>
 </html>
