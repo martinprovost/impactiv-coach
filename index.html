@@ -72,13 +72,100 @@
             line-height: 1.25rem;
             font-weight: 500;
         }
-        
+
         @media (min-width: 768px) {
             .nav-links {
                 display: flex;
             }
         }
-        
+
+        /* Menu hamburger */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled .hamburger span,
+        .hamburger.active span {
+            background: #374151;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        @media (min-width: 768px) {
+            .hamburger {
+                display: none;
+            }
+        }
+
+        /* Menu mobile */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: white;
+            z-index: 40;
+            padding-top: 5rem;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            padding-top: 6rem;
+        }
+
+        .mobile-menu a {
+            color: #374151;
+            text-decoration: none;
+            font-size: 1.25rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .mobile-menu a:hover {
+            color: #BA8F69;
+        }
+
+        .mobile-menu a.active {
+            color: #BA8F69;
+            font-weight: 600;
+        }
+
+        @media (min-width: 768px) {
+            .mobile-menu {
+                display: none !important;
+            }
+        }
+
         nav.transparent .nav-links a {
             color: white;
             text-decoration: none;
@@ -102,10 +189,10 @@
         /* Style pour le lien actif - spécificité augmentée */
         nav.transparent .nav-links a.active,
         nav.scrolled .nav-links a.active {
-            color: #B48F69 !important;
+            color: #BA8F69 !important;
             font-weight: 600;
         }
-        
+
         .nav-links a::after {
             content: '';
             position: absolute;
@@ -113,7 +200,7 @@
             left: 0;
             width: 0;
             height: 2px;
-            background: #B48F69;
+            background: #BA8F69;
             transition: width 0.3s ease;
         }
         
@@ -131,7 +218,13 @@
             background: #003C50;
             position: relative;
             overflow: hidden;
-            padding: 8rem 0 4rem;
+            padding: 5rem 1rem 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .hero {
+                padding: 8rem 0 4rem;
+            }
         }
         
         .hero::before {
@@ -157,32 +250,41 @@
         
         .hero h1 {
             font-family: 'Congenial', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-            font-size: 2.25rem;
-            line-height: 1;
+            font-size: 1.75rem;
+            line-height: 1.2;
             font-weight: 800;
             color: white;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             letter-spacing: -0.02em;
         }
-        
+
         @media (min-width: 768px) {
             .hero h1 {
                 font-size: 3.75rem;
                 line-height: 1;
+                margin-bottom: 1.5rem;
             }
         }
-        
+
         .hero-subtitle {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 1.25rem;
-            line-height: 1.75rem;
+            font-size: 1rem;
+            line-height: 1.5rem;
             font-weight: 400;
             color: white;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             opacity: 0.95;
             max-width: 700px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        @media (min-width: 768px) {
+            .hero-subtitle {
+                font-size: 1.25rem;
+                line-height: 1.75rem;
+                margin-bottom: 3rem;
+            }
         }
         
         .hero-buttons {
@@ -1309,12 +1411,26 @@
                 <a href="#benefices">Bénéfices</a>
                 <a href="#formations">Formations</a>
                 <a href="#actualites">Actualités</a>
-                
                 <a href="#contact">Contact</a>
+            </div>
+
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
     </nav>
-    
+
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#accueil">Accueil</a>
+        <a href="#a-propos">À propos</a>
+        <a href="#benefices">Bénéfices</a>
+        <a href="#formations">Formations</a>
+        <a href="#actualites">Actualités</a>
+        <a href="#contact">Contact</a>
+    </div>
+
     <!-- HERO SECTION -->
     <section id="accueil" class="hero">
         <div class="container">
@@ -2316,6 +2432,36 @@
             
             // Initialiser au chargement
             updateActiveLink();
+        })();
+
+        // Menu hamburger
+        (function() {
+            var hamburger = document.getElementById('hamburger');
+            var mobileMenu = document.getElementById('mobileMenu');
+            var mobileLinks = mobileMenu.querySelectorAll('a');
+
+            function closeMenu() {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            }
+
+            hamburger.addEventListener('click', function() {
+                hamburger.classList.toggle('active');
+                mobileMenu.classList.toggle('active');
+            });
+
+            mobileLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeMenu();
+                });
+            });
+
+            // Fermer le menu sur resize si on passe en desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    closeMenu();
+                }
+            });
         })();
     </script>
 </body>
