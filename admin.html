@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Impactiv</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #003C50 0%, #005a7a 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            color: #003C50;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+
+        .login-box p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #003C50;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 1rem;
+            background: #003C50;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-box button:hover {
+            background: #005a7a;
+        }
+
+        .login-error {
+            color: #e53935;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-header {
+            background: #003C50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            font-size: 1.25rem;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .admin-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .admin-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f9fafb;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            color: #003C50;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #003C50;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.5rem;
+            overflow: hidden;
+            background: #f9fafb;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .image-preview span {
+            color: #999;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: #003C50;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-submit:hover {
+            background: #005a7a;
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Actualites List */
+        .actualites-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .actualite-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.3s;
+        }
+
+        .actualite-item:hover {
+            background: #f9fafb;
+        }
+
+        .actualite-item:last-child {
+            border-bottom: none;
+        }
+
+        .actualite-thumb {
+            width: 80px;
+            height: 60px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f0f0f0;
+        }
+
+        .actualite-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .actualite-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .actualite-type-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .actualite-type-badge.podcast {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .actualite-type-badge.article {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .actualite-type-badge.formation {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .actualite-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .actualite-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #e53935;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .btn-delete:hover {
+            background: #ffebee;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #003C50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: #333;
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: #43a047;
+        }
+
+        .toast.error {
+            background: #e53935;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>Impactiv Admin</h1>
+            <p>Connectez-vous pour g&eacute;rer les actualit&eacute;s</p>
+            <div class="login-error" id="loginError">Mot de passe incorrect</div>
+            <input type="password" id="passwordInput" placeholder="Mot de passe" onkeypress="if(event.key==='Enter') login()">
+            <button onclick="login()">Se connecter</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <header class="admin-header">
+            <h1>Impactiv - Gestion des Actualit&eacute;s</h1>
+            <button class="btn-logout" onclick="logout()">D&eacute;connexion</button>
+        </header>
+
+        <div class="admin-content">
+            <!-- Add Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Ajouter une actualit&eacute;</h2>
+                </div>
+                <div class="card-body">
+                    <form id="addForm" onsubmit="addActualite(event)">
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="typeInput" required>
+                                <option value="podcast">Podcast</option>
+                                <option value="article">Article</option>
+                                <option value="formation">Formation</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Image</label>
+                            <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)" required>
+                            <div class="image-preview" id="imagePreview">
+                                <span>Aper&ccedil;u de l'image</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Source (ex: Apple Podcasts, LinkedIn...)</label>
+                            <input type="text" id="sourceInput" placeholder="Ex: L'Entreprise de Demain" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Titre</label>
+                            <input type="text" id="titleInput" placeholder="Titre de l'actualit&eacute;" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="descriptionInput" placeholder="Courte description..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Lien</label>
+                            <input type="url" id="linkInput" placeholder="https://..." required>
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="submitBtn">Ajouter</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Actualites List -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Actualit&eacute;s publi&eacute;es</h2>
+                </div>
+                <div class="card-body">
+                    <div class="actualites-list" id="actualitesList">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyChwpjy2cj-jyyFd1IlcxX7EvzY0M1iNEk",
+            authDomain: "impactiv.firebaseapp.com",
+            databaseURL: "https://impactiv-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "impactiv",
+            storageBucket: "impactiv.firebasestorage.app",
+            messagingSenderId: "798482965493",
+            appId: "1:798482965493:web:146ae5d3ac8e5b1e10f6bc"
+        };
+
+        // Clé API imgBB
+        const IMGBB_API_KEY = "4a00036213338c4bf3a7863d8f1a54cb";
+
+        // Mot de passe admin
+        const ADMIN_PASSWORD = "impactiv2024-92";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let selectedImage = null;
+        let selectedImageBase64 = null;
+
+        // Login
+        window.login = function() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                sessionStorage.setItem('impactiv_admin', 'true');
+                loadActualites();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        // Logout
+        window.logout = function() {
+            sessionStorage.removeItem('impactiv_admin');
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('passwordInput').value = '';
+        }
+
+        // Check session
+        if (sessionStorage.getItem('impactiv_admin')) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadActualites();
+        }
+
+        // Preview image
+        window.previewImage = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedImage = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedImageBase64 = e.target.result.split(',')[1];
+                    document.getElementById('imagePreview').innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Upload image to imgBB
+        async function uploadToImgBB(base64Image) {
+            const formData = new FormData();
+            formData.append('image', base64Image);
+
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                return data.data.url;
+            } else {
+                throw new Error('Erreur upload image');
+            }
+        }
+
+        // Add actualite
+        window.addActualite = async function(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi en cours...';
+
+            try {
+                // Upload image to imgBB
+                const imageUrl = await uploadToImgBB(selectedImageBase64);
+
+                // Save to database
+                const actualite = {
+                    type: document.getElementById('typeInput').value,
+                    source: document.getElementById('sourceInput').value,
+                    title: document.getElementById('titleInput').value,
+                    description: document.getElementById('descriptionInput').value,
+                    link: document.getElementById('linkInput').value,
+                    image: imageUrl,
+                    createdAt: Date.now()
+                };
+
+                await push(ref(db, 'actualites'), actualite);
+
+                // Reset form
+                document.getElementById('addForm').reset();
+                document.getElementById('imagePreview').innerHTML = '<span>Aper&ccedil;u de l\'image</span>';
+                selectedImage = null;
+                selectedImageBase64 = null;
+
+                showToast('Actualit&eacute; ajout&eacute;e avec succ&egrave;s!', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Erreur: ' + error.message, 'error');
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Ajouter';
+        }
+
+        // Load actualites
+        function loadActualites() {
+            const actualitesRef = ref(db, 'actualites');
+            onValue(actualitesRef, (snapshot) => {
+                const container = document.getElementById('actualitesList');
+                const data = snapshot.val();
+
+                if (!data) {
+                    container.innerHTML = '<div class="empty-state">Aucune actualit&eacute; pour le moment</div>';
+                    return;
+                }
+
+                const items = Object.entries(data)
+                    .map(([id, item]) => ({ id, ...item }))
+                    .sort((a, b) => b.createdAt - a.createdAt);
+
+                container.innerHTML = items.map(item => `
+                    <div class="actualite-item">
+                        <div class="actualite-thumb">
+                            <img src="${item.image}" alt="${item.title}">
+                        </div>
+                        <div class="actualite-info">
+                            <span class="actualite-type-badge ${item.type}">${item.type}</span>
+                            <div class="actualite-title">${item.title}</div>
+                        </div>
+                        <div class="actualite-actions">
+                            <button class="btn-delete" onclick="deleteActualite('${item.id}')" title="Supprimer">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        // Delete actualite
+        window.deleteActualite = async function(id) {
+            if (confirm('Supprimer cette actualit&eacute; ?')) {
+                try {
+                    await remove(ref(db, 'actualites/' + id));
+                    showToast('Actualit&eacute; supprim&eacute;e', 'success');
+                } catch (error) {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

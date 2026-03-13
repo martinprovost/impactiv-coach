@@ -2174,27 +2174,10 @@
                 <h2 class="section-title">Ressources & Inspiration</h2>
             </div>
             
-            <div class="actualites-grid">
-                <div class="actualite-card">
-                    <div class="actualite-type">PODCAST</div>
-                    <div class="actualite-image-wrapper">
-                        <img src="attached_assets/images/actualités/podcast - Comment la génération Z façonne l'entreprise de demain.png" alt="Podcast Génération Z" class="actualite-image">
-                    </div>
-                    <div class="actualite-date">L'Entreprise de Demain</div>
-                    <h3 class="actualite-title">Comment la génération Z façonne l'entreprise de demain</h3>
-                    <p class="actualite-description">Les stratégies à adopter pour attirer, retenir et motiver ces jeunes talents au sein de nos organisations.</p>
-                    <a href="https://podcasts.audiomeans.fr/l-entreprise-de-demain-c4fe76bb0f0a/saison-7-11-elodie-gentina-comment-la-generation-z-faconne-lentreprise-de-demain-84c47374" target="_blank" class="actualite-link">Écouter →</a>
-                </div>
-
-                <div class="actualite-card">
-                    <div class="actualite-type">PODCAST</div>
-                    <div class="actualite-image-wrapper">
-                        <img src="attached_assets/images/actualités/podcast - Comprendre et combattre le syndrome de l'impostrice.webp" alt="Podcast Syndrome Impostrice" class="actualite-image">
-                    </div>
-                    <div class="actualite-date">Apple Podcasts</div>
-                    <h3 class="actualite-title">Comprendre et combattre le syndrome de l'impostrice</h3>
-                    <p class="actualite-description">Et si ce qu'on appelle le "manque de confiance en soi" était en réalité un symptôme d'un système ?</p>
-                    <a href="https://podcasts.apple.com/fr/podcast/78-comprendre-et-combattre-le-syndrome-de/id1530733664?i=1000709372684" target="_blank" class="actualite-link">Écouter →</a>
+            <div class="actualites-grid" id="actualitesGrid">
+                <!-- Chargement dynamique depuis Firebase -->
+                <div class="actualites-loading" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <p style="color: #666;">Chargement des actualités...</p>
                 </div>
             </div>
         </div>
@@ -2466,6 +2449,71 @@
                 }
             });
         })();
+    </script>
+
+    <!-- Firebase pour les actualités -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyChwpjy2cj-jyyFd1IlcxX7EvzY0M1iNEk",
+            authDomain: "impactiv.firebaseapp.com",
+            databaseURL: "https://impactiv-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "impactiv",
+            storageBucket: "impactiv.firebasestorage.app",
+            messagingSenderId: "798482965493",
+            appId: "1:798482965493:web:146ae5d3ac8e5b1e10f6bc"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        function getLinkText(type) {
+            switch(type) {
+                case 'podcast': return 'Écouter →';
+                case 'article': return 'Lire l\'article →';
+                case 'formation': return 'En savoir plus →';
+                default: return 'Voir →';
+            }
+        }
+
+        function loadActualites() {
+            const container = document.getElementById('actualitesGrid');
+            const actualitesRef = ref(db, 'actualites');
+
+            onValue(actualitesRef, (snapshot) => {
+                const data = snapshot.val();
+
+                if (!data) {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #666;">Aucune actualité pour le moment</div>';
+                    return;
+                }
+
+                const items = Object.entries(data)
+                    .map(([id, item]) => ({ id, ...item }))
+                    .sort((a, b) => b.createdAt - a.createdAt);
+
+                container.innerHTML = items.map(item => `
+                    <div class="actualite-card">
+                        <div class="actualite-type">${item.type.toUpperCase()}</div>
+                        <div class="actualite-image-wrapper">
+                            <img src="${item.image}" alt="${item.title}" class="actualite-image">
+                        </div>
+                        <div class="actualite-date">${item.source}</div>
+                        <h3 class="actualite-title">${item.title}</h3>
+                        <p class="actualite-description">${item.description}</p>
+                        <a href="${item.link}" target="_blank" class="actualite-link">${getLinkText(item.type)}</a>
+                    </div>
+                `).join('');
+            }, (error) => {
+                console.error('Erreur Firebase:', error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #666;">Erreur de chargement</div>';
+            });
+        }
+
+        loadActualites();
     </script>
 </body>
 </html>
