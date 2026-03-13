@@ -212,8 +212,13 @@
             color: #999;
         }
 
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
         .btn-submit {
-            width: 100%;
+            flex: 1;
             padding: 1rem;
             background: #003C50;
             color: white;
@@ -232,6 +237,22 @@
         .btn-submit:disabled {
             background: #ccc;
             cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            padding: 1rem 1.5rem;
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
         }
 
         /* Actualites List */
@@ -313,6 +334,20 @@
         .actualite-actions {
             display: flex;
             align-items: center;
+        }
+
+        .btn-edit {
+            background: none;
+            border: none;
+            color: #1976d2;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .btn-edit:hover {
+            background: #e3f2fd;
         }
 
         .btn-delete {
@@ -449,7 +484,10 @@
                             <input type="url" id="linkInput" placeholder="https://..." required>
                         </div>
 
-                        <button type="submit" class="btn-submit" id="submitBtn">Ajouter</button>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-submit" id="submitBtn">Ajouter</button>
+                            <button type="button" class="btn-cancel" id="cancelBtn" onclick="cancelEdit()" style="display: none;">Annuler</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -475,7 +513,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getDatabase, ref, push, onValue, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         // Configuration Firebase
         const firebaseConfig = {
@@ -499,6 +537,8 @@
 
         let selectedImage = null;
         let selectedImageBase64 = null;
+        let editingId = null; // ID de l'actualité en cours d'édition
+        let editingImageUrl = null; // URL de l'image actuelle en mode édition
 
         // Login
         window.login = function() {
@@ -560,19 +600,26 @@
             }
         }
 
-        // Add actualite
+        // Add or update actualite
         window.addActualite = async function(event) {
             event.preventDefault();
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Envoi en cours...';
+            submitBtn.textContent = editingId ? 'Modification...' : 'Envoi en cours...';
 
             try {
-                // Upload image to imgBB
-                const imageUrl = await uploadToImgBB(selectedImageBase64);
+                // Upload image to imgBB (only if new image selected)
+                let imageUrl;
+                if (selectedImageBase64) {
+                    imageUrl = await uploadToImgBB(selectedImageBase64);
+                } else if (editingId && editingImageUrl) {
+                    imageUrl = editingImageUrl;
+                } else {
+                    throw new Error('Veuillez sélectionner une image');
+                }
 
-                // Save to database
+                // Prepare data
                 const actualite = {
                     type: document.getElementById('typeInput').value,
                     source: document.getElementById('sourceInput').value,
@@ -580,18 +627,23 @@
                     description: document.getElementById('descriptionInput').value,
                     link: document.getElementById('linkInput').value,
                     image: imageUrl,
-                    createdAt: Date.now()
+                    createdAt: editingId ? undefined : Date.now()
                 };
 
-                await push(ref(db, 'actualites'), actualite);
+                if (editingId) {
+                    // Update existing
+                    delete actualite.createdAt;
+                    await update(ref(db, 'actualites/' + editingId), actualite);
+                    showToast('Actualit&eacute; modifi&eacute;e!', 'success');
+                } else {
+                    // Create new
+                    actualite.createdAt = Date.now();
+                    await push(ref(db, 'actualites'), actualite);
+                    showToast('Actualit&eacute; ajout&eacute;e!', 'success');
+                }
 
                 // Reset form
-                document.getElementById('addForm').reset();
-                document.getElementById('imagePreview').innerHTML = '<span>Aper&ccedil;u de l\'image</span>';
-                selectedImage = null;
-                selectedImageBase64 = null;
-
-                showToast('Actualit&eacute; ajout&eacute;e avec succ&egrave;s!', 'success');
+                resetForm();
             } catch (error) {
                 console.error(error);
                 showToast('Erreur: ' + error.message, 'error');
@@ -599,6 +651,43 @@
 
             submitBtn.disabled = false;
             submitBtn.textContent = 'Ajouter';
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('addForm').reset();
+            document.getElementById('imagePreview').innerHTML = '<span>Aper&ccedil;u de l\'image</span>';
+            document.getElementById('imageInput').required = true;
+            document.getElementById('submitBtn').textContent = 'Ajouter';
+            document.getElementById('cancelBtn').style.display = 'none';
+            selectedImage = null;
+            selectedImageBase64 = null;
+            editingId = null;
+            editingImageUrl = null;
+        }
+
+        // Edit actualite
+        window.editActualite = function(id, type, source, title, description, link, image) {
+            editingId = id;
+            editingImageUrl = image;
+
+            document.getElementById('typeInput').value = type;
+            document.getElementById('sourceInput').value = source;
+            document.getElementById('titleInput').value = title;
+            document.getElementById('descriptionInput').value = description;
+            document.getElementById('linkInput').value = link;
+            document.getElementById('imagePreview').innerHTML = `<img src="${image}" alt="Preview">`;
+            document.getElementById('imageInput').required = false;
+            document.getElementById('submitBtn').textContent = 'Modifier';
+            document.getElementById('cancelBtn').style.display = 'block';
+
+            // Scroll to form
+            document.getElementById('addForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Cancel edit
+        window.cancelEdit = function() {
+            resetForm();
         }
 
         // Load actualites
@@ -627,6 +716,12 @@
                             <div class="actualite-title">${item.title}</div>
                         </div>
                         <div class="actualite-actions">
+                            <button class="btn-edit" onclick="editActualite('${item.id}', '${item.type}', '${item.source.replace(/'/g, "\\'")}', '${item.title.replace(/'/g, "\\'")}', '${item.description.replace(/'/g, "\\'")}', '${item.link}', '${item.image}')" title="Modifier">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
                             <button class="btn-delete" onclick="deleteActualite('${item.id}')" title="Supprimer">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
